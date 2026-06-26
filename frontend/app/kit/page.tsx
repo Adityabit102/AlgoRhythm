@@ -11,9 +11,6 @@ import { RegionPills } from "@/components/ui/RegionPill";
 import { Spinner } from "@/components/ui/Spinner";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { TrackCard } from "@/components/ui/TrackCard";
-import { Navbar } from "@/components/ui/Navbar";
-import { Footer } from "@/components/ui/Footer";
-import { CursorGlow } from "@/components/ui/CursorGlow";
 import type { Region } from "@/lib/types";
 
 /** Internal component gallery — quick visual smoke test for the UI kit. */
@@ -21,8 +18,6 @@ export default function Kit() {
   const [region, setRegion] = useState<Region>("global");
   return (
     <>
-      <CursorGlow />
-      <Navbar />
       <MarqueeStrip />
       <main className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-16">
         <SectionHeading index="00" kicker="UI Kit" title="Design system smoke test" />
@@ -74,7 +69,6 @@ export default function Kit() {
           }}
         />
       </main>
-      <Footer />
     </>
   );
 }

@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Inter, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { Navbar } from "@/components/ui/Navbar";
+import { Footer } from "@/components/ui/Footer";
+import { CursorGlow } from "@/components/ui/CursorGlow";
+import { Showcase } from "@/components/three/Showcase";
 
 const display = Space_Grotesk({
   variable: "--font-display",
@@ -43,7 +47,12 @@ export default function RootLayout({
       className={`${display.variable} ${sans.variable} ${mono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-cream text-ink">
-        <Providers>{children}</Providers>
+        <Providers>
+          <CursorGlow />
+          <Navbar />
+          <div className="flex flex-1 flex-col">{children}</div>
+          <Footer accent={<Showcase name="disco" className="h-full" />} />
+        </Providers>
       </body>
     </html>
   );
