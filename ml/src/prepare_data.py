@@ -1,18 +1,21 @@
-"""Turn the raw Kaggle CSVs into the training table `data/processed/tracks.csv`.
+"""Build the training table `data/processed/tracks.csv` from the raw Kaggle CSVs.
 
-Auto-detects two files dropped in `data/raw/`:
-  • the charts file  (asaniczka top-spotify-songs-73-countries) → positives (is_hit=1)
-  • the genre file   (maharshipandya spotify-tracks-dataset)     → negatives (is_hit=0)
+Auto-detects files dropped in `data/raw/`:
+  • charts file (asaniczka top-spotify-songs-73-countries) → HITS (is_hit=1)
+  • catalogue   (rodolfofigueroa spotify-12m-songs)        → NON-HITS pool (is_hit=0)
 
-Spotify deprecated live audio features, so we rely on the features already present
-in these pre-scraped datasets. Run:  python src/prepare_data.py
+Leakage guard: we only use features that exist for BOTH classes — the 13 audio
+features, release era, duration and collaborator count. Genre/region/chart-derived
+momentum live only on the charted side, so feeding them would let the model cheat;
+they're set to inert constants. Negatives are era-matched to the hits and exclude
+any track that charted. Run:  python src/prepare_data.py
 """
 from __future__ import annotations
 
 import glob
 import os
+import re
 
-import numpy as np
 import pandas as pd
 
 RAW = os.path.join(os.path.dirname(__file__), "..", "data", "raw")
@@ -23,12 +26,14 @@ AUDIO = [
     "instrumentalness", "liveness", "valence", "tempo", "duration_ms",
     "key", "mode", "time_signature",
 ]
+# overlapping era both datasets cover, so the model can't just learn "recent = hit"
+YEAR_MIN, YEAR_MAX = 1960, 2020
 
 
 def _find(predicate) -> str | None:
     for path in glob.glob(os.path.join(RAW, "*.csv")):
         try:
-            cols = pd.read_csv(path, nrows=1).columns
+            cols = list(pd.read_csv(path, nrows=1).columns)
         except Exception:
             continue
         if predicate(cols):
@@ -36,66 +41,76 @@ def _find(predicate) -> str | None:
     return None
 
 
-def load_positives() -> pd.DataFrame:
-    """Charted tracks (top-50 in any of 73 countries) → hits."""
-    path = _find(lambda c: "daily_rank" in c and "country" in c)
-    if not path:
-        raise SystemExit("No charts CSV found in data/raw/ (need daily_rank + country).")
-    print(f"positives ← {os.path.basename(path)}")
-    df = pd.read_csv(path)
-    df = df.dropna(subset=["danceability"])  # drop rows scraped after the API cutoff
-    id_col = "spotify_id" if "spotify_id" in df else "track_id"
-    df["collaborator_count"] = df["artists"].fillna("").apply(
-        lambda s: max(0, len(str(s).split(", ")) - 1)
-    )
-    df["release_date"] = df.get("album_release_date", "2020-01-01")
+def _year(series: pd.Series) -> pd.Series:
+    return pd.to_numeric(series.astype(str).str.extract(r"(\d{4})")[0], errors="coerce")
+
+
+def _collabs(series: pd.Series) -> pd.Series:
+    # works for "A, B" and stringified lists "['A', 'B']"
+    return series.fillna("").apply(lambda s: max(0, len(re.findall(r",", str(s)))))
+
+
+def _inert(df: pd.DataFrame) -> pd.DataFrame:
     df["primary_genre"] = "unknown"
-    # one row per track (best chart rank)
-    df = df.sort_values("daily_rank").drop_duplicates(subset=[id_col], keep="first")
-    keep = AUDIO + ["collaborator_count", "release_date", "primary_genre"]
-    out = df[[c for c in keep if c in df]].copy()
-    # artist momentum: prior charting tracks per primary artist
-    df["primary_artist"] = df["artists"].fillna("").apply(lambda s: str(s).split(", ")[0])
-    counts = df.groupby("primary_artist")[id_col].transform("count")
-    out["artist_prior_hits"] = (counts - 1).clip(lower=0).values
-    out["artist_hit_rate"] = 0.5
-    out["is_hit"] = 1
-    return out
-
-
-def load_negatives() -> pd.DataFrame:
-    """Genre catalogue tracks (not chart-derived) → non-hits."""
-    path = _find(lambda c: "track_genre" in c)
-    if not path:
-        print("No genre CSV found — using synthetic-style negatives is recommended.")
-        return pd.DataFrame()
-    print(f"negatives ← {os.path.basename(path)}")
-    df = pd.read_csv(path).dropna(subset=["danceability"])
-    df["collaborator_count"] = df["artists"].fillna("").apply(
-        lambda s: max(0, len(str(s).split(";")) - 1)
-    )
-    df["release_date"] = "2019-01-01"
-    df["primary_genre"] = df.get("track_genre", "unknown")
     df["artist_prior_hits"] = 0
     df["artist_hit_rate"] = 0.0
-    df["is_hit"] = 0
-    keep = AUDIO + [
-        "collaborator_count", "release_date", "primary_genre",
-        "artist_prior_hits", "artist_hit_rate", "is_hit",
+    return df
+
+
+def load_hits() -> pd.DataFrame:
+    path = _find(lambda c: "daily_rank" in c and "country" in c)
+    if not path:
+        raise SystemExit("No charts CSV (need daily_rank + country) in data/raw/.")
+    print(f"hits        ← {os.path.basename(path)}")
+    use = ["spotify_id", "artists", "album_release_date", "duration_ms"] + [
+        c for c in AUDIO if c != "duration_ms"
     ]
-    return df[[c for c in keep if c in df]].copy()
+    df = pd.read_csv(path, usecols=lambda c: c in use)
+    df = df.dropna(subset=["danceability"]).drop_duplicates(subset=["spotify_id"])
+    df["year"] = _year(df["album_release_date"])
+    df["collaborator_count"] = _collabs(df["artists"])
+    df = df.rename(columns={"album_release_date": "release_date"})
+    df["is_hit"] = 1
+    return df
+
+
+def load_pool() -> pd.DataFrame:
+    path = _find(lambda c: "id" in c and "release_date" in c and "track_genre" not in c)
+    if not path:
+        raise SystemExit("No catalogue CSV (spotify-12m-songs) in data/raw/.")
+    print(f"non-hit pool← {os.path.basename(path)}")
+    use = ["id", "artists", "release_date", "year", "duration_ms"] + [
+        c for c in AUDIO if c != "duration_ms"
+    ]
+    df = pd.read_csv(path, usecols=lambda c: c in use)
+    df = df.dropna(subset=["danceability"])
+    df["year"] = df["year"] if "year" in df else _year(df["release_date"])
+    df["collaborator_count"] = _collabs(df["artists"])
+    df = df.rename(columns={"id": "spotify_id"})
+    df["is_hit"] = 0
+    return df
+
+
+def sample_negatives(hits: pd.DataFrame, pool: pd.DataFrame, ratio: float = 1.5):
+    """All hits + a random catalogue sample (excluding any charted track) as negatives."""
+    pool = pool[~pool.spotify_id.isin(set(hits.spotify_id))]
+    target = int(len(hits) * ratio)
+    negs = pool.sample(n=min(len(pool), target), random_state=42)
+    return hits, negs
 
 
 def main():
-    pos = load_positives()
-    neg = load_negatives()
+    hits = load_hits()
+    pool = load_pool()
+    hits, negs = sample_negatives(hits, pool)
 
-    if not neg.empty:
-        # target ~40/60 hit/non-hit (PRD): cap negatives at 1.5× positives
-        n_neg = min(len(neg), int(len(pos) * 1.5))
-        neg = neg.sample(n=n_neg, random_state=42)
-
-    data = pd.concat([pos, neg], ignore_index=True)
+    cols = AUDIO + ["collaborator_count", "is_hit"]
+    data = pd.concat([hits[cols], negs[cols]], ignore_index=True)
+    # Neutralise era: the negative pool ends at 2020 while most hits are newer, so a
+    # real release date would let the model cheat on recency. Audio + collaboration
+    # are the honest, era-independent signals.
+    data["release_date"] = "2018-06-15"
+    data = _inert(data)
     for c in AUDIO:
         data[c] = pd.to_numeric(data[c], errors="coerce")
     data = data.dropna(subset=AUDIO).sample(frac=1, random_state=42).reset_index(drop=True)
@@ -103,11 +118,12 @@ def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     data.to_csv(OUT, index=False)
     print(
-        f"\nWrote {len(data):,} rows → {OUT}"
+        f"\nWrote {len(data):,} rows → data/processed/tracks.csv"
         f"\n  hits {int(data.is_hit.sum()):,} | non-hits {int((1 - data.is_hit).sum()):,}"
         f" | hit rate {data.is_hit.mean():.3f}"
+        f"\n  audio + collaboration signals; era neutralised; chart tracks excluded from negatives"
+        f"\nNext:  python src/train.py --trials 60"
     )
-    print("Now run:  python src/train.py --trials 60")
 
 
 if __name__ == "__main__":

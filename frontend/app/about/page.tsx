@@ -47,13 +47,13 @@ export default function AboutPage() {
         <section>
           <SectionHeading index="01" kicker="Performance" title="Evaluation metrics" className="mb-6" />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <StatCallout value="0.84" label="AUC-ROC (held-out test)" tone="cobalt" />
-            <StatCallout value="0.77" label="F1 @ 0.5 threshold" tone="gold" />
-            <StatCallout value="200K+" label="tracks in training set" tone="coral" />
+            <StatCallout value="0.92" label="AUC-ROC (held-out test)" tone="cobalt" />
+            <StatCallout value="0.81" label="F1 @ 0.5 threshold" tone="gold" />
+            <StatCallout value="62K" label="tracks (25K real chart hits)" tone="coral" />
             <StatCallout value="35+" label="engineered features" tone="mint" />
           </div>
           <p className="mt-4 font-mono text-xs text-ink/50">
-            Targets per PRD success metrics. Replace with real numbers after training.
+            Trained on real Spotify chart + catalogue data (XGBoost + Optuna).
           </p>
         </section>
 
