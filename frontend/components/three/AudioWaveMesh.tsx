@@ -21,15 +21,16 @@ export function AudioWaveMesh({
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const count = rows * cols;
 
-  // the full reference-image palette — every colour appears as flowing regions
+  // the full reference-palette — olive, red, mint, gold, pale yellow — every
+  // colour appears as flowing regions across the field
   const palette = useMemo(
     () =>
-      ["#1b4de4", "#a8e0d0", "#f4d74e", "#e8473d", "#2d5bff", "#8fe3c8"].map(
+      ["#63634a", "#f72b00", "#6fc9a6", "#fbde8e", "#fbfbae"].map(
         (h) => new THREE.Color(h),
       ),
     [],
   );
-  const white = useMemo(() => new THREE.Color("#fbf7ec"), []);
+  const white = useMemo(() => new THREE.Color("#ffffff"), []);
 
   useFrame((state) => {
     const m = mesh.current;

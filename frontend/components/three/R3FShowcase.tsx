@@ -11,6 +11,7 @@ import { Headphones3D } from "./Headphones3D";
 import { EqualizerBars3D } from "./EqualizerBars3D";
 import { GlobeHits3D } from "./GlobeHits3D";
 import { DiscoBall3D } from "./DiscoBall3D";
+import { GLBModel, ModelBoundary } from "./Model3D";
 
 export type SceneName =
   | "vinyl"
@@ -33,7 +34,20 @@ const CAMERA: Partial<Record<SceneName, [number, number, number]>> = {
 
 const FOV: Partial<Record<SceneName, number>> = { notes: 50 };
 
-function SceneBody({ name, intensity }: { name: SceneName; intensity?: number }) {
+/** Optional .glb override per scene. When a file exists in /public/models it is
+ *  used (studio-quality); otherwise the hand-built primitive renders instead.
+ *  Drop in vinyl.glb / cassette.glb / synth.glb / headphones.glb to upgrade those. */
+const GLB: Partial<
+  Record<SceneName, { url: string; rotation?: [number, number, number] }>
+> = {
+  boombox: { url: "/models/boombox.glb", rotation: [0.1, -0.5, 0] },
+  cassette: { url: "/models/cassette.glb", rotation: [0.2, -0.4, 0] },
+  headphones: { url: "/models/headphones.glb", rotation: [0.1, 0.4, 0] },
+  synth: { url: "/models/synth.glb", rotation: [0.3, -0.4, 0] },
+  vinyl: { url: "/models/vinyl.glb", rotation: [0.2, -0.3, 0] },
+};
+
+function Primitive({ name, intensity }: { name: SceneName; intensity?: number }) {
   switch (name) {
     case "vinyl":
       return <VinylRecord />;
@@ -56,6 +70,18 @@ function SceneBody({ name, intensity }: { name: SceneName; intensity?: number })
     case "disco":
       return <DiscoBall3D />;
   }
+}
+
+function SceneBody({ name, intensity }: { name: SceneName; intensity?: number }) {
+  const glb = GLB[name];
+  const primitive = <Primitive name={name} intensity={intensity} />;
+  if (!glb) return primitive;
+  // Try the GLB; if the file is missing/broken, fall back to the primitive.
+  return (
+    <ModelBoundary fallback={primitive}>
+      <GLBModel url={glb.url} rotation={glb.rotation} />
+    </ModelBoundary>
+  );
 }
 
 /** Renders a named scene inside the shared Canvas. Import via Showcase (ssr:false). */
