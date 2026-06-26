@@ -30,7 +30,6 @@ export function AudioWaveMesh({
       ),
     [],
   );
-  const white = useMemo(() => new THREE.Color("#ffffff"), []);
 
   useFrame((state) => {
     const m = mesh.current;
@@ -62,12 +61,11 @@ export function AudioWaveMesh({
           palette.length - 1,
           Math.floor(region * palette.length),
         );
-        const norm = (h - 0.25) / 2.0;
-        // max out saturation for flat-illustration vibrancy; tiny sparkle at peaks
+        // high saturation + capped lightness so the lit faces shade across a rich
+        // range (3D detail) instead of clipping to white, while staying vivid
         const col = palette[idx].clone();
         col.getHSL(hsl);
-        col.setHSL(hsl.h, Math.min(1, hsl.s * 1.25 + 0.2), hsl.l);
-        if (norm > 0.9) col.lerp(white, (norm - 0.9) * 0.5);
+        col.setHSL(hsl.h, Math.min(1, hsl.s * 1.3 + 0.2), Math.min(0.46, hsl.l));
         m.setColorAt(i, col);
         i++;
       }
@@ -80,7 +78,14 @@ export function AudioWaveMesh({
     <group rotation={[0.62, 0.25, 0]} position={[0, -0.4, 0]}>
       <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshBasicMaterial toneMapped={false} />
+        {/* lit so the cube faces shade (3D depth/detail), but tone-mapping off so
+            the colours stay at full flat-illustration vibrancy */}
+        <meshStandardMaterial
+          toneMapped={false}
+          roughness={0.55}
+          metalness={0.05}
+          envMapIntensity={0}
+        />
       </instancedMesh>
     </group>
   );
