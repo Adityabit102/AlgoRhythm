@@ -32,11 +32,25 @@ def _client():
     return spotipy.Spotify(auth_manager=auth)
 
 
-def fetch_track(track_id: str) -> dict:
-    """Return raw track metadata + audio features for a track id."""
+def fetch_track_meta(track_id: str) -> dict:
+    """Return track metadata for the UI (name, artist, album, cover, release date,
+    popularity, collaborators, genre). Metadata is NOT part of the deprecated
+    audio-features endpoint, so this still works for new apps."""
     sp = _client()
     meta = sp.track(track_id)
-    audio = sp.audio_features([track_id])[0] or {}
-    artist_id = meta["artists"][0]["id"]
-    artist = sp.artist(artist_id)
-    return {"meta": meta, "audio": audio, "artist": artist}
+    artists = meta.get("artists", [])
+    primary_artist = sp.artist(artists[0]["id"]) if artists else {}
+    images = meta.get("album", {}).get("images", [])
+    return {
+        "id": meta["id"],
+        "name": meta["name"],
+        "artist": ", ".join(a["name"] for a in artists) or "Unknown",
+        "album": meta.get("album", {}).get("name", ""),
+        "release_date": meta.get("album", {}).get("release_date", "2020-01-01"),
+        "duration_ms": meta.get("duration_ms", 0),
+        "cover_url": images[0]["url"] if images else "",
+        "spotify_url": meta.get("external_urls", {}).get("spotify", ""),
+        "collaborator_count": max(0, len(artists) - 1),
+        "primary_genre": (primary_artist.get("genres") or ["unknown"])[0],
+        "popularity": meta.get("popularity", 0),
+    }

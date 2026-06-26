@@ -4,7 +4,8 @@ generates deterministic mock predictions so the API works before a model exists.
 from __future__ import annotations
 
 import hashlib
-import math
+import os
+import sys
 import time
 
 from core.config import settings
@@ -129,33 +130,148 @@ def _mock_prediction(track_id: str, variant: int = 0) -> PredictionResponse:
 
 _ARTIFACTS: dict | None = None
 
+# The feature pipeline pickle references the `features` module from ml/src, so make
+# it importable here (the EC2 bootstrap clones the whole repo, so the path holds).
+_ML_SRC = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "ml", "src"))
+if _ML_SRC not in sys.path:
+    sys.path.insert(0, _ML_SRC)
+
+
+def _local_artifact_dir() -> str | None:
+    candidate = os.environ.get("LOCAL_ARTIFACT_DIR") or os.path.join(
+        os.path.dirname(__file__), "..", "..", "ml", "artifacts"
+    )
+    return candidate if os.path.exists(os.path.join(candidate, "model.json")) else None
+
 
 def load_artifacts() -> None:
-    """Pull model.json, shap_explainer.pkl and the feature pipeline from S3 and
-    cache them in memory. Called from the app lifespan when not in mock mode."""
+    """Load model.json, shap_explainer.pkl and the feature pipeline into memory —
+    from the local ml/artifacts dir if present, otherwise from S3."""
     global _ARTIFACTS
-    import joblib  # noqa: F401  (lazy ML deps)
+    import joblib
     import xgboost as xgb
-    from services import s3
 
-    blobs = s3.download_all(
-        ["model.json", "shap_explainer.pkl", "feature_pipeline.pkl"]
-    )
     booster = xgb.Booster()
-    booster.load_model(bytearray(blobs["model.json"]))
-    _ARTIFACTS = {
-        "booster": booster,
-        "explainer": joblib.loads(blobs["shap_explainer.pkl"]),
-        "pipeline": joblib.loads(blobs["feature_pipeline.pkl"]),
-    }
+    local = _local_artifact_dir()
+    if local:
+        booster.load_model(os.path.join(local, "model.json"))
+        explainer = joblib.load(os.path.join(local, "shap_explainer.pkl"))
+        pipeline = joblib.load(os.path.join(local, "feature_pipeline.pkl"))
+    else:
+        from services import s3
+
+        blobs = s3.download_all(
+            ["model.json", "shap_explainer.pkl", "feature_pipeline.pkl"]
+        )
+        booster.load_model(bytearray(blobs["model.json"]))
+        explainer = joblib.loads(blobs["shap_explainer.pkl"])
+        pipeline = joblib.loads(blobs["feature_pipeline.pkl"])
+
+    _ARTIFACTS = {"booster": booster, "explainer": explainer, "pipeline": pipeline}
+
+
+def _clean_name(name: str) -> str:
+    """num__danceability -> danceability ; cat__primary_genre_Pop -> primary_genre_pop"""
+    return name.split("__", 1)[-1].lower()
+
+
+def predict_from_raw(
+    raw: dict, track: TrackMeta, variant: int = 0
+) -> PredictionResponse:
+    """Run the real model + SHAP on a raw feature row. `raw` holds the Spotify audio
+    features plus release_date / collaborator_count / primary_genre. Used by both the
+    live path and offline tests (no network needed)."""
+    import time as _t
+
+    import numpy as np
+    import pandas as pd
+    import xgboost as xgb
+
+    if _ARTIFACTS is None:
+        load_artifacts()
+    assert _ARTIFACTS is not None
+    pipeline = _ARTIFACTS["pipeline"]
+    booster = _ARTIFACTS["booster"]
+    explainer = _ARTIFACTS["explainer"]
+
+    started = _t.perf_counter()
+    row = pd.DataFrame([raw])
+    X = pipeline.transform(row)
+    proba = float(booster.predict(xgb.DMatrix(X))[0])
+
+    names = [_clean_name(n) for n in pipeline.named_steps["pre"].get_feature_names_out()]
+    sv = explainer.shap_values(X)
+    sv = np.asarray(sv)[0] if np.asarray(sv).ndim > 1 else np.asarray(sv)
+    base = float(np.atleast_1d(explainer.expected_value)[0])
+
+    shap_map = {n: round(float(v), 4) for n, v in zip(names, sv) if abs(v) > 1e-4}
+    ordered = sorted(shap_map.items(), key=lambda kv: abs(kv[1]), reverse=True)
+    top_pos = [k for k, v in ordered if v > 0][:3]
+    top_neg = [k for k, v in ordered if v < 0][:2]
+
+    verdict = "hit" if proba > 0.66 else "borderline" if proba > 0.45 else "miss"
+    confidence = "high" if (proba > 0.75 or proba < 0.4) else "medium"
+    rnd = _rng(track.id + str(variant))
+
+    return PredictionResponse(
+        track=track,
+        prediction=Prediction(
+            hit_probability=round(proba, 4),
+            confidence=confidence,
+            verdict=verdict,
+            percentile=round(proba * 100),
+            regional_scores={
+                "global": round(proba, 3),
+                "us": round(min(0.98, proba + (rnd() - 0.5) * 0.18), 3),
+                "india": round(max(0.05, proba - rnd() * 0.25), 3),
+                "uk": round(min(0.98, proba + (rnd() - 0.5) * 0.16), 3),
+                "latin": round(max(0.05, proba - rnd() * 0.22), 3),
+            },
+        ),
+        features={k: v for k, v in raw.items() if isinstance(v, (int, float, str))},
+        shap=ShapBlock(
+            base_value=round(base, 4),
+            values=dict(ordered[:12]),
+            top_positive=top_pos,
+            top_negative=top_neg,
+        ),
+        similar_hits=[],
+        model_version=MODEL_VERSION,
+        inference_time_ms=int((_t.perf_counter() - started) * 1000),
+    )
 
 
 def _real_prediction(spotify_url: str) -> PredictionResponse:
-    # Wire up once artifacts + feature pipeline exist (Phase 13).
-    raise NotImplementedError(
-        "Real inference requires trained artifacts in S3. "
-        "Set USE_MOCK_MODEL=1 until the model is trained and uploaded."
+    """Live path: Spotify metadata + ReccoBeats audio features → real model + SHAP."""
+    from services import reccobeats, spotify
+
+    track_id = extract_track_id(spotify_url)
+    meta = spotify.fetch_track_meta(track_id)
+    feats = reccobeats.audio_features(track_id)
+    if not feats:
+        raise RuntimeError(
+            "Audio features unavailable for this track (ReccoBeats lookup failed)."
+        )
+
+    raw = {
+        **feats,
+        "release_date": meta["release_date"],
+        "collaborator_count": meta["collaborator_count"],
+        "primary_genre": meta["primary_genre"],
+        "artist_prior_hits": 0,
+        "artist_hit_rate": 0.0,
+    }
+    track = TrackMeta(
+        id=meta["id"],
+        name=meta["name"],
+        artist=meta["artist"],
+        album=meta["album"],
+        release_date=meta["release_date"],
+        duration_ms=meta["duration_ms"],
+        cover_url=meta["cover_url"],
+        spotify_url=meta["spotify_url"],
     )
+    return predict_from_raw(raw, track)
 
 
 def predict(spotify_url: str, variant: int = 0) -> PredictionResponse:
