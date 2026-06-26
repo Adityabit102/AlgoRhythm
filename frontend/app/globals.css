@@ -14,6 +14,14 @@
   --color-cream: #fbf7ec;
   --color-cloud: #ffffff;
 
+  /* Yestalgia retro palette */
+  --color-pink: #ef5fa8;
+  --color-blush: #ecccdf;
+  --color-lime: #c8e626;
+  --color-orange: #f47b20;
+  --color-jade: #1ba37a;
+  --color-purple: #6b3fa0;
+
   --font-display: var(--font-display), "Space Grotesk", sans-serif;
   --font-sans: var(--font-sans), "Inter", system-ui, sans-serif;
   --font-mono: var(--font-mono), "Space Mono", ui-monospace, monospace;

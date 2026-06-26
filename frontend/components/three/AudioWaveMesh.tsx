@@ -21,11 +21,11 @@ export function AudioWaveMesh({
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const count = rows * cols;
 
-  // the full reference-palette — olive, red, mint, gold, pale yellow — every
-  // colour appears as flowing regions across the field
+  // Yestalgia palette — hot pink, lime, orange, jade, purple, coral — flowing as
+  // colour regions across the field
   const palette = useMemo(
     () =>
-      ["#63634a", "#f72b00", "#6fc9a6", "#fbde8e", "#fbfbae"].map(
+      ["#ef5fa8", "#c8e626", "#f47b20", "#1ba37a", "#6b3fa0", "#f0613c"].map(
         (h) => new THREE.Color(h),
       ),
     [],

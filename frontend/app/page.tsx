@@ -21,22 +21,22 @@ export default function Home() {
   return (
     <main className="flex flex-col">
       {/* ───────────── Hero ───────────── */}
-      <section className="grain relative overflow-hidden bg-cobalt text-cream">
+      <section className="grain relative overflow-hidden bg-blush text-ink">
         <GrainOverlay />
         {/* 3D backdrop */}
-        <div className="pointer-events-none absolute inset-0 opacity-90">
+        <div className="pointer-events-none absolute inset-0 opacity-95">
           <Showcase name="wave" className="h-full w-full" />
         </div>
 
-        <StickerShape shape="star" className="absolute left-8 top-16 text-gold" />
-        <StickerShape shape="squiggle" className="absolute right-12 top-24 text-mint" />
-        <StickerShape shape="note" className="absolute right-10 top-1/2 text-coral" />
+        <StickerShape shape="star" className="absolute left-8 top-16 text-lime" />
+        <StickerShape shape="squiggle" className="absolute right-12 top-24 text-jade" />
+        <StickerShape shape="note" className="absolute right-10 top-1/2 text-purple" />
 
         <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 pb-24 pt-10 text-center sm:pb-28 sm:pt-12">
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-full border-2 border-cream/40 px-4 py-1 font-mono text-xs uppercase tracking-[0.3em]"
+            className="rounded-full border-2 border-ink bg-lime px-4 py-1 font-mono text-xs uppercase tracking-[0.3em] shadow-[var(--shadow-pop-sm)]"
           >
             The science behind every hit
           </motion.span>
@@ -45,17 +45,17 @@ export default function Home() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05, type: "spring", stiffness: 90, damping: 16 }}
-            className="font-display mt-6 text-5xl font-bold leading-[0.92] sm:text-7xl md:text-8xl"
+            className="font-display mt-6 text-5xl font-bold leading-[0.92] [text-shadow:3px_3px_0_var(--color-cream)] sm:text-7xl md:text-8xl"
           >
             What makes a song
-            <br />a <span className="text-gold">hit?</span>
+            <br />a <span className="text-pink">hit?</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.18 }}
-            className="mt-6 max-w-xl text-lg text-cream/80"
+            className="mt-6 max-w-xl text-lg font-medium text-ink/80"
           >
             Paste any Spotify track. AlgoRhythm scores its hit probability and breaks
             down exactly which features — danceability, timing, momentum — drove the call.
@@ -67,7 +67,7 @@ export default function Home() {
             transition={{ delay: 0.28 }}
             className="mt-10 flex w-full flex-col items-center gap-6"
           >
-            <SearchInput onDark />
+            <SearchInput />
             <RegionPills value={region} onChange={setRegion} />
           </motion.div>
         </div>
