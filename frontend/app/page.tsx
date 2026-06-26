@@ -118,10 +118,8 @@ export default function Home() {
             title="Built for music, down to the pixels"
             className="mb-2"
           />
-          <p className="mx-auto mt-40 max-w-md text-ink/70">
-            A 3D globe on Atlas, a synth on Explore, a boombox on Insights, equalizer
-            bars on every prediction — the whole studio drifts by as you scroll.
-          </p>
+          {/* spacer keeps room for the floating boombox below the heading */}
+          <div className="h-56" aria-hidden />
         </div>
       </section>
 
