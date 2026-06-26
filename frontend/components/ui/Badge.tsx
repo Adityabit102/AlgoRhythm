@@ -4,7 +4,7 @@ import type { Verdict } from "@/lib/types";
 const VERDICT_STYLES: Record<Verdict, { bg: string; label: string }> = {
   hit: { bg: "bg-gold text-ink", label: "HIT" },
   borderline: { bg: "bg-mint text-ink", label: "BORDERLINE" },
-  miss: { bg: "bg-coral text-cream", label: "MISS" },
+  miss: { bg: "bg-coral text-ink", label: "MISS" },
 };
 
 export function VerdictBadge({

@@ -25,7 +25,7 @@ export default function Home() {
         <GrainOverlay />
         {/* 3D backdrop */}
         <div className="pointer-events-none absolute inset-0 opacity-95">
-          <Showcase name="wave" className="h-full w-full" />
+          <Showcase name="wave" className="h-full w-full" eager />
         </div>
         {/* legibility scrim — dims the wave behind the text, fades out to the edges */}
         <div

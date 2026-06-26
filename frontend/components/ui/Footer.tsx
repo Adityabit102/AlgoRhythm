@@ -29,7 +29,7 @@ export function Footer({ accent }: { accent?: React.ReactNode }) {
           <h3 className="font-display text-3xl font-bold">
             Algo<span className="text-gold">Rhythm</span>
           </h3>
-          <p className="mt-3 max-w-xs text-sm text-cream/70">
+          <p className="mt-3 max-w-xs text-sm text-cream/85">
             Predicting chart hits from audio DNA, release timing, and artist
             momentum — explained feature by feature.
           </p>
@@ -37,7 +37,7 @@ export function Footer({ accent }: { accent?: React.ReactNode }) {
         </div>
         {COLS.map((c) => (
           <div key={c.title}>
-            <h4 className="font-mono text-xs uppercase tracking-widest text-cream/60">
+            <h4 className="font-mono text-xs uppercase tracking-widest text-cream/80">
               {c.title}
             </h4>
             <ul className="mt-4 space-y-2">
@@ -52,7 +52,7 @@ export function Footer({ accent }: { accent?: React.ReactNode }) {
           </div>
         ))}
       </div>
-      <div className="border-t-2 border-cream/20 px-6 py-5 text-center font-mono text-xs text-cream/60">
+      <div className="border-t-2 border-cream/35 px-6 py-5 text-center font-mono text-xs text-cream/80">
         Built by Aditya · XGBoost · SHAP · FastAPI · AWS · Next.js
       </div>
     </footer>
