@@ -66,7 +66,7 @@ export function SearchInput({
           </span>
         ) : (
           <span
-            className={`font-mono text-xs ${onDark ? "text-cream/70" : "text-ink/45"}`}
+            className={`font-mono text-xs ${onDark ? "text-cream/70" : "text-ink/60"}`}
           >
             e.g. https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT
           </span>

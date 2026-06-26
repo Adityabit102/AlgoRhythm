@@ -27,6 +27,14 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-0 opacity-95">
           <Showcase name="wave" className="h-full w-full" />
         </div>
+        {/* legibility scrim — dims the wave behind the text, fades out to the edges */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(120% 80% at 50% 50%, rgba(236,204,223,0.94) 0%, rgba(236,204,223,0.6) 42%, rgba(236,204,223,0) 78%)",
+          }}
+        />
 
         <StickerShape shape="star" className="absolute left-8 top-16 text-lime" />
         <StickerShape shape="squiggle" className="absolute right-12 top-24 text-jade" />
