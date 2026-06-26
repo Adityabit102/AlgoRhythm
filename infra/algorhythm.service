@@ -1,0 +1,19 @@
+[Unit]
+Description=AlgoRhythm FastAPI inference server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/algorhythm/backend
+EnvironmentFile=/opt/algorhythm/backend/.env
+ExecStart=/opt/algorhythm/backend/.venv/bin/gunicorn main:app \
+    --workers 2 \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --bind 127.0.0.1:8000 \
+    --timeout 60
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
