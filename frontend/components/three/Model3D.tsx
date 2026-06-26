@@ -50,7 +50,8 @@ export function GLBModel({
 }
 
 /** Renders the GLB model; if the file is missing or fails to load, falls back to
- *  the hand-built primitive instead of crashing the canvas. */
+ *  the hand-built primitive instead of crashing the canvas. Also silences the
+ *  thrown load error so it doesn't surface the dev error overlay. */
 export class ModelBoundary extends Component<
   { fallback: ReactNode; children: ReactNode },
   { failed: boolean }
@@ -58,6 +59,9 @@ export class ModelBoundary extends Component<
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
+  }
+  componentDidCatch() {
+    // swallow — the fallback primitive is the intended behaviour
   }
   render() {
     return this.state.failed ? this.props.fallback : this.props.children;
