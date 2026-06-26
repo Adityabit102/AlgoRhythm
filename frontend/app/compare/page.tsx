@@ -16,13 +16,14 @@ import { RadarComparison } from "@/components/compare/RadarComparison";
 const SLOT_COLORS = ["border-cobalt", "border-coral", "border-mint-deep"];
 
 export default function ComparePage() {
+  const [count, setCount] = useState<2 | 3>(2);
   const [urls, setUrls] = useState(["", "", ""]);
   const [results, setResults] = useState<PredictionResponse[] | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function run() {
-    const filled = urls.filter((u) => u.trim());
-    if (filled.length < 2) return;
+    const filled = urls.slice(0, count).filter((u) => u.trim());
+    if (filled.length < count) return;
     setLoading(true);
     try {
       setResults(await batchPredict(filled));
@@ -57,9 +58,29 @@ export default function ComparePage() {
           </div>
         </div>
 
+        {/* how many tracks */}
+        <div className="mt-8 flex items-center gap-3">
+          <span className="font-mono text-xs uppercase tracking-widest text-ink/50">
+            Compare
+          </span>
+          <div className="inline-flex rounded-full border-2 border-ink p-1">
+            {([2, 3] as const).map((n) => (
+              <button
+                key={n}
+                onClick={() => setCount(n)}
+                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  count === n ? "bg-ink text-cream" : "text-ink hover:bg-mint/40"
+                }`}
+              >
+                {n} tracks
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* inputs */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          {urls.map((u, i) => (
+        <div className={`mt-5 grid gap-4 ${count === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+          {urls.slice(0, count).map((u, i) => (
             <input
               key={i}
               value={u}
@@ -73,7 +94,7 @@ export default function ComparePage() {
         </div>
         <div className="mt-5">
           <Button onClick={run} variant="primary">
-            {loading ? "Analyzing…" : "Compare tracks"}
+            {loading ? "Analyzing…" : `Compare ${count} tracks`}
           </Button>
         </div>
 

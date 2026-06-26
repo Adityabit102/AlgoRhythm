@@ -12,6 +12,7 @@ import { InsightTeasers } from "@/components/home/InsightTeasers";
 import { RecentFeed } from "@/components/home/RecentFeed";
 import { RetroScene } from "@/components/home/RetroScene";
 import { VinylRecord2D } from "@/components/home/VinylRecord2D";
+import { ScrollDecor } from "@/components/home/ScrollDecor";
 import { useRegion } from "@/lib/store";
 
 export default function Home() {
@@ -27,11 +28,11 @@ export default function Home() {
           <Showcase name="wave" className="h-full w-full" />
         </div>
 
-        <StickerShape shape="star" className="absolute left-8 top-28 text-gold" />
-        <StickerShape shape="squiggle" className="absolute right-12 top-40 text-mint" />
-        <StickerShape shape="note" className="absolute bottom-24 left-1/4 text-coral" />
+        <StickerShape shape="star" className="absolute left-8 top-16 text-gold" />
+        <StickerShape shape="squiggle" className="absolute right-12 top-24 text-mint" />
+        <StickerShape shape="note" className="absolute right-10 top-1/2 text-coral" />
 
-        <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 py-28 text-center sm:py-36">
+        <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 pb-24 pt-10 text-center sm:pb-28 sm:pt-12">
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -74,51 +75,55 @@ export default function Home() {
 
       <MarqueeStrip text="DANCEABILITY · ENERGY · VALENCE · TEMPO · MOMENTUM · TIMING" />
 
-      {/* ───────────── Insight teasers ───────────── */}
-      <section className="mx-auto w-full max-w-6xl px-6 py-20">
-        <SectionHeading
-          index="01"
-          kicker="What the data says"
-          title="Three patterns hiding in the charts"
-          className="mb-10"
+      {/* ───────────── Insight teasers (with scroll-by cassette) ───────────── */}
+      <section className="relative mx-auto w-full max-w-6xl px-6 py-20">
+        <ScrollDecor
+          name="cassette"
+          className="-right-10 top-0 hidden h-72 w-72 opacity-90 lg:block"
         />
-        <InsightTeasers />
+        <div className="relative z-10">
+          <SectionHeading
+            index="01"
+            kicker="What the data says"
+            title="Three patterns hiding in the charts"
+            className="mb-10"
+          />
+          <InsightTeasers />
+        </div>
       </section>
 
       {/* ───────────── Retro parallax scene (Decathlon-style) ───────────── */}
       <RetroScene />
 
-      {/* ───────────── 3D toolkit band ───────────── */}
-      <section className="mx-auto w-full max-w-6xl px-6 pb-4">
-        <SectionHeading
-          index="02"
-          kicker="Built for music"
-          title="An interface that sounds like the subject"
-          className="mb-10"
+      {/* ───────────── Floating boombox band ───────────── */}
+      <section className="relative mx-auto w-full max-w-6xl px-6 py-24">
+        <ScrollDecor
+          name="boombox"
+          className="left-1/2 top-0 h-80 w-[34rem] -translate-x-1/2 opacity-95"
+          drift={180}
         />
-        <div className="grid gap-6 sm:grid-cols-3">
-          {[
-            { name: "cassette" as const, label: "Cassette", tone: "bg-mint" },
-            { name: "boombox" as const, label: "Boombox", tone: "bg-gold" },
-            { name: "headphones" as const, label: "Headphones", tone: "bg-coral" },
-          ].map((c) => (
-            <div key={c.name} className="pop-card overflow-hidden">
-              <Showcase name={c.name} className={`h-60 ${c.tone}`} controls />
-              <div className="border-t-2 border-ink px-4 py-3 font-display font-semibold">
-                {c.label}
-              </div>
-            </div>
-          ))}
+        <div className="relative z-10 text-center">
+          <SectionHeading
+            align="center"
+            index="02"
+            kicker="Turn it up"
+            title="Built for music, down to the pixels"
+            className="mb-2"
+          />
+          <p className="mx-auto mt-40 max-w-md text-ink/70">
+            A 3D globe on Atlas, a synth on Explore, a boombox on Insights, equalizer
+            bars on every prediction — the whole studio drifts by as you scroll.
+          </p>
         </div>
-        <p className="mt-4 text-center font-mono text-xs text-ink/50">
-          drag any panel to spin it · plus a 3D globe on Atlas, a synth on Explore,
-          a boombox on Insights and equalizer bars on every prediction
-        </p>
       </section>
 
-      {/* ───────────── Recent feed + CTA ───────────── */}
-      <section className="mx-auto grid w-full max-w-6xl gap-10 px-6 pb-24 lg:grid-cols-2 lg:items-center">
-        <div>
+      {/* ───────────── Recent feed + spinning vinyl ───────────── */}
+      <section className="relative mx-auto grid w-full max-w-6xl gap-10 px-6 pb-28 lg:grid-cols-2 lg:items-center">
+        <ScrollDecor
+          name="headphones"
+          className="-left-16 bottom-0 hidden h-64 w-64 opacity-80 lg:block"
+        />
+        <div className="relative z-10">
           <SectionHeading
             index="03"
             kicker="Live"
@@ -131,7 +136,7 @@ export default function Home() {
           </p>
           <RecentFeed />
         </div>
-        <div className="flex items-center justify-center">
+        <div className="relative z-10 flex items-center justify-center">
           <VinylRecord2D size={400} className="max-w-full" />
         </div>
       </section>

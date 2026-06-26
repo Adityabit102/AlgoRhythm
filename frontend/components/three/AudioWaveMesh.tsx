@@ -21,20 +21,15 @@ export function AudioWaveMesh({
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const count = rows * cols;
 
-  // low→high ramp through the reference-image palette: blue → mint → yellow
-  const ramp = useMemo(() => {
-    const stops = ["#1b4de4", "#2d5bff", "#7ad5bd", "#a8e0d0", "#f4d74e", "#ffd23f"].map(
-      (h) => new THREE.Color(h),
-    );
-    return (t: number) => {
-      const x = Math.max(0, Math.min(0.999, t)) * (stops.length - 1);
-      const i = Math.floor(x);
-      return stops[i].clone().lerp(stops[i + 1], x - i);
-    };
-  }, []);
-
-  // sparse red accents (image's red) so peaks pop without flooding the field
-  const coral = useMemo(() => new THREE.Color("#e8473d"), []);
+  // the full reference-image palette — every colour appears as flowing regions
+  const palette = useMemo(
+    () =>
+      ["#1b4de4", "#a8e0d0", "#f4d74e", "#e8473d", "#2d5bff", "#8fe3c8"].map(
+        (h) => new THREE.Color(h),
+      ),
+    [],
+  );
+  const white = useMemo(() => new THREE.Color("#fbf7ec"), []);
 
   useFrame((state) => {
     const m = mesh.current;
@@ -57,8 +52,16 @@ export function AudioWaveMesh({
         dummy.updateMatrix();
         m.setMatrixAt(i, dummy.matrix);
 
+        // colour by a slow-moving position field so all palette hues coexist as
+        // drifting regions, then brighten toward cream at the peaks
+        const region =
+          (Math.sin(x * 0.45 + t * 0.3) + Math.cos(z * 0.4 - t * 0.25) + 2) / 4;
+        const idx = Math.min(
+          palette.length - 1,
+          Math.floor(region * palette.length),
+        );
         const norm = (h - 0.25) / 2.0;
-        const col = norm > 0.92 ? coral.clone() : ramp(norm);
+        const col = palette[idx].clone().lerp(white, Math.max(0, norm - 0.6) * 0.6);
         m.setColorAt(i, col);
         i++;
       }

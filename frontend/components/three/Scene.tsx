@@ -1,15 +1,21 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import {
+  OrbitControls,
+  Environment,
+  Lightformer,
+  ContactShadows,
+} from "@react-three/drei";
 import { Suspense } from "react";
 import type { ReactNode } from "react";
+import * as THREE from "three";
 
-/** Reusable Canvas wrapper: lights, Suspense, perf-clamped DPR, optional controls.
- *  Self-contained (no external HDR) so it works offline and loads fast.
+/** Reusable Canvas wrapper. A studio Environment (built from Lightformers, so no
+ *  network HDR), soft contact shadows and filmic tone mapping give every object a
+ *  polished, reflective, "rendered" look rather than flat primitives.
  *
- *  Always load this via `next/dynamic(..., { ssr: false })` from pages so Three.js
- *  never runs during SSR. */
+ *  Always load via `next/dynamic(..., {ssr:false})` so Three never runs during SSR. */
 export function Scene({
   children,
   className,
@@ -17,6 +23,7 @@ export function Scene({
   fov = 45,
   controls = false,
   autoRotate = false,
+  shadows = true,
 }: {
   children: ReactNode;
   className?: string;
@@ -24,20 +31,44 @@ export function Scene({
   fov?: number;
   controls?: boolean;
   autoRotate?: boolean;
+  shadows?: boolean;
 }) {
   return (
     <div className={className}>
       <Canvas
-        dpr={[1, 1.8]}
+        shadows
+        dpr={[1, 2]}
         camera={{ position: cameraPosition, fov }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping }}
         style={{ width: "100%", height: "100%" }}
       >
-        <ambientLight intensity={0.7} />
-        <directionalLight position={[5, 8, 5]} intensity={1.2} />
-        <directionalLight position={[-6, -2, -4]} intensity={0.4} color="#2d5bff" />
-        <pointLight position={[0, 3, 4]} intensity={30} color="#ffd23f" />
-        <Suspense fallback={null}>{children}</Suspense>
+        <ambientLight intensity={0.55} />
+        <directionalLight
+          position={[4, 8, 6]}
+          intensity={2.2}
+          castShadow
+          shadow-mapSize={[1024, 1024]}
+        />
+        <directionalLight position={[-6, 2, -4]} intensity={0.5} color="#2d5bff" />
+        <Suspense fallback={null}>
+          {children}
+          {shadows && (
+            <ContactShadows
+              position={[0, -1.7, 0]}
+              opacity={0.35}
+              scale={12}
+              blur={2.6}
+              far={4}
+            />
+          )}
+          {/* Studio reflections — pure Lightformers, no external HDR file. */}
+          <Environment resolution={256}>
+            <Lightformer intensity={3} position={[0, 4, 3]} scale={[8, 4, 1]} />
+            <Lightformer intensity={1.4} position={[-4, 1, 2]} scale={[3, 6, 1]} color="#8fe3c8" />
+            <Lightformer intensity={1.4} position={[4, 1, 2]} scale={[3, 6, 1]} color="#ffd23f" />
+            <Lightformer intensity={1} position={[0, -3, 2]} scale={[8, 3, 1]} color="#2d5bff" />
+          </Environment>
+        </Suspense>
         {controls && (
           <OrbitControls
             enablePan={false}

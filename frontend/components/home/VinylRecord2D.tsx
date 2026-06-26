@@ -22,7 +22,8 @@ export function VinylRecord2D({
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const base = reduce ? 0 : 0.55;
+    // Always turning clockwise (a little slower if the user prefers reduced motion).
+    const base = reduce ? 0.22 : 0.55;
     vel.current = base;
     let raf = 0;
     const tick = () => {
