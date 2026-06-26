@@ -228,7 +228,12 @@ def predict_from_raw(
                 "latin": round(max(0.05, proba - rnd() * 0.22), 3),
             },
         ),
-        features={k: v for k, v in raw.items() if isinstance(v, (int, float, str))},
+        features={
+            k: v
+            for k, v in raw.items()
+            if isinstance(v, (int, float, str))
+            and k not in {"release_date", "primary_genre", "artist_prior_hits", "artist_hit_rate"}
+        },
         shap=ShapBlock(
             base_value=round(base, 4),
             values=dict(ordered[:12]),
@@ -253,11 +258,15 @@ def _real_prediction(spotify_url: str) -> PredictionResponse:
             "Audio features unavailable for this track (ReccoBeats lookup failed)."
         )
 
+    # Feed the SAME neutralised inputs the model was trained on (era/genre/momentum
+    # were held constant to avoid leakage). Only audio + collaboration vary.
     raw = {
         **feats,
-        "release_date": meta["release_date"],
+        "duration_ms": meta["duration_ms"],
+        "time_signature": 4,
         "collaborator_count": meta["collaborator_count"],
-        "primary_genre": meta["primary_genre"],
+        "release_date": "2018-06-15",
+        "primary_genre": "unknown",
         "artist_prior_hits": 0,
         "artist_hit_rate": 0.0,
     }

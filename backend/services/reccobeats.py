@@ -9,11 +9,11 @@ import httpx
 
 BASE = "https://api.reccobeats.com/v1"
 
-# Spotify audio-feature keys the model expects.
+# Audio-feature keys ReccoBeats returns (duration_ms / time_signature come from
+# Spotify metadata, not this endpoint).
 FEATURE_KEYS = [
     "danceability", "energy", "loudness", "speechiness", "acousticness",
     "instrumentalness", "liveness", "valence", "tempo", "key", "mode",
-    "duration_ms", "time_signature",
 ]
 
 
