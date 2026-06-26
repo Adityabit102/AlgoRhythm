@@ -37,6 +37,7 @@ export function AudioWaveMesh({
     if (!m) return;
     const t = reduced ? 0 : state.clock.elapsedTime;
     let i = 0;
+    const hsl = { h: 0, s: 0, l: 0 };
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const x = (c - cols / 2) * spacing;
@@ -62,10 +63,12 @@ export function AudioWaveMesh({
           Math.floor(region * palette.length),
         );
         const norm = (h - 0.25) / 2.0;
-        // brighten overall, plus extra lift toward the peaks
-        const col = palette[idx]
-          .clone()
-          .lerp(white, 0.22 + Math.max(0, norm - 0.6) * 0.6);
+        // crank saturation for vivid, punchy colour (not washed-out pastel),
+        // with a tiny sparkle only at the very tallest peaks
+        const col = palette[idx].clone();
+        col.getHSL(hsl);
+        col.setHSL(hsl.h, Math.min(1, hsl.s * 1.35 + 0.15), Math.min(0.58, hsl.l * 1.05));
+        if (norm > 0.88) col.lerp(white, (norm - 0.88) * 0.5);
         m.setColorAt(i, col);
         i++;
       }
