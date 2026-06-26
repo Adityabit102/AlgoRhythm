@@ -104,7 +104,7 @@ export default function Home() {
       <RetroScene />
 
       {/* ───────────── Floating boombox band ───────────── */}
-      <section className="relative mx-auto w-full max-w-6xl px-6 py-24">
+      <section className="relative mx-auto w-full max-w-6xl px-6 pt-16 pb-6">
         <ScrollDecor
           name="boombox"
           className="left-1/2 top-0 h-80 w-[34rem] -translate-x-1/2 opacity-95"
@@ -119,7 +119,7 @@ export default function Home() {
             className="mb-2"
           />
           {/* spacer keeps room for the floating boombox below the heading */}
-          <div className="h-56" aria-hidden />
+          <div className="h-28" aria-hidden />
         </div>
       </section>
 

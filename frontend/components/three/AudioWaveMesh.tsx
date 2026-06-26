@@ -21,11 +21,11 @@ export function AudioWaveMesh({
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const count = rows * cols;
 
-  // Yestalgia palette — hot pink, lime, orange, jade, purple, coral — flowing as
-  // colour regions across the field
+  // Yestalgia palette — hot pink, lime, orange, kelly green, purple, coral —
+  // matched to the flat illustration, rendered unlit so they stay fully vivid
   const palette = useMemo(
     () =>
-      ["#ef5fa8", "#c8e626", "#f47b20", "#1ba37a", "#6b3fa0", "#f0613c"].map(
+      ["#f53ea0", "#c2e000", "#f6731a", "#15a85a", "#7a36b0", "#f04a2c"].map(
         (h) => new THREE.Color(h),
       ),
     [],
@@ -63,12 +63,11 @@ export function AudioWaveMesh({
           Math.floor(region * palette.length),
         );
         const norm = (h - 0.25) / 2.0;
-        // crank saturation for vivid, punchy colour (not washed-out pastel),
-        // with a tiny sparkle only at the very tallest peaks
+        // max out saturation for flat-illustration vibrancy; tiny sparkle at peaks
         const col = palette[idx].clone();
         col.getHSL(hsl);
-        col.setHSL(hsl.h, Math.min(1, hsl.s * 1.35 + 0.15), Math.min(0.58, hsl.l * 1.05));
-        if (norm > 0.88) col.lerp(white, (norm - 0.88) * 0.5);
+        col.setHSL(hsl.h, Math.min(1, hsl.s * 1.25 + 0.2), hsl.l);
+        if (norm > 0.9) col.lerp(white, (norm - 0.9) * 0.5);
         m.setColorAt(i, col);
         i++;
       }
@@ -81,7 +80,7 @@ export function AudioWaveMesh({
     <group rotation={[0.62, 0.25, 0]} position={[0, -0.4, 0]}>
       <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial roughness={0.35} metalness={0.15} />
+        <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
     </group>
   );
