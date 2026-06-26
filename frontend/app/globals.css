@@ -61,16 +61,20 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Hard Memphis border + offset shadow card */
-.pop-card {
-  border: 2px solid var(--color-ink);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-pop);
-  background: var(--color-cloud);
-}
+/* Hard Memphis border + offset shadow card.
+   In @layer components so Tailwind `bg-*` utilities can override the default
+   white background (otherwise unlayered CSS wins and every colored card goes white). */
+@layer components {
+  .pop-card {
+    border: 2px solid var(--color-ink);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-pop);
+    background: var(--color-cloud);
+  }
 
-.pop-border {
-  border: 2px solid var(--color-ink);
+  .pop-border {
+    border: 2px solid var(--color-ink);
+  }
 }
 
 /* Marquee */

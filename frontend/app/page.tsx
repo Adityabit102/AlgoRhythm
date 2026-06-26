@@ -64,7 +64,7 @@ export default function Home() {
             transition={{ delay: 0.28 }}
             className="mt-10 flex w-full flex-col items-center gap-6"
           >
-            <SearchInput />
+            <SearchInput onDark />
             <RegionPills value={region} onChange={setRegion} />
           </motion.div>
         </div>
@@ -83,11 +83,39 @@ export default function Home() {
         <InsightTeasers />
       </section>
 
+      {/* ───────────── 3D toolkit band ───────────── */}
+      <section className="mx-auto w-full max-w-6xl px-6 pb-4">
+        <SectionHeading
+          index="02"
+          kicker="Built for music"
+          title="An interface that sounds like the subject"
+          className="mb-10"
+        />
+        <div className="grid gap-6 sm:grid-cols-3">
+          {[
+            { name: "cassette" as const, label: "Cassette", tone: "bg-mint" },
+            { name: "boombox" as const, label: "Boombox", tone: "bg-gold" },
+            { name: "headphones" as const, label: "Headphones", tone: "bg-coral" },
+          ].map((c) => (
+            <div key={c.name} className="pop-card overflow-hidden">
+              <Showcase name={c.name} className={`h-60 ${c.tone}`} controls />
+              <div className="border-t-2 border-ink px-4 py-3 font-display font-semibold">
+                {c.label}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-center font-mono text-xs text-ink/50">
+          drag any panel to spin it · plus a 3D globe on Atlas, a synth on Explore,
+          a boombox on Insights and equalizer bars on every prediction
+        </p>
+      </section>
+
       {/* ───────────── Recent feed + CTA ───────────── */}
       <section className="mx-auto grid w-full max-w-6xl gap-10 px-6 pb-24 lg:grid-cols-2 lg:items-center">
         <div>
           <SectionHeading
-            index="02"
+            index="03"
             kicker="Live"
             title="Fresh off the model"
             className="mb-6"

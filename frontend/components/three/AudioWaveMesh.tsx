@@ -5,11 +5,12 @@ import { useFrame } from "@react-three/fiber";
 import { useReducedMotion } from "framer-motion";
 import * as THREE from "three";
 
-/** A grid of bars rippling like an audio spectrum / waveform field. */
+/** A dense grid of slim bars rippling like a 3D spectrum analyser. Two combined
+ *  wave fields give it an organic, detailed motion rather than a single ripple. */
 export function AudioWaveMesh({
-  rows = 14,
-  cols = 24,
-  spacing = 0.42,
+  rows = 26,
+  cols = 46,
+  spacing = 0.3,
 }: {
   rows?: number;
   cols?: number;
@@ -20,20 +21,24 @@ export function AudioWaveMesh({
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const count = rows * cols;
 
-  const colorPalette = useMemo(
-    () => [
-      new THREE.Color("#1a43e0"),
-      new THREE.Color("#2d5bff"),
-      new THREE.Color("#8fe3c8"),
-      new THREE.Color("#ffd23f"),
-      new THREE.Color("#ff5a45"),
-    ],
-    [],
-  );
+  // a smooth low→high ramp through the brand palette (cohesive, not garish)
+  const ramp = useMemo(() => {
+    const stops = ["#1230b0", "#1a43e0", "#2d5bff", "#5fc9ab", "#8fe3c8", "#ffd23f"].map(
+      (h) => new THREE.Color(h),
+    );
+    return (t: number) => {
+      const x = Math.max(0, Math.min(0.999, t)) * (stops.length - 1);
+      const i = Math.floor(x);
+      return stops[i].clone().lerp(stops[i + 1], x - i);
+    };
+  }, []);
+
+  // sparse coral accents so peaks pop without flooding the field
+  const coral = useMemo(() => new THREE.Color("#ff5a45"), []);
 
   useFrame((state) => {
-    const mref = mesh.current;
-    if (!mref) return;
+    const m = mesh.current;
+    if (!m) return;
     const t = reduced ? 0 : state.clock.elapsedTime;
     let i = 0;
     for (let r = 0; r < rows; r++) {
@@ -41,28 +46,32 @@ export function AudioWaveMesh({
         const x = (c - cols / 2) * spacing;
         const z = (r - rows / 2) * spacing;
         const d = Math.sqrt(x * x + z * z);
-        const h = 0.4 + (Math.sin(d * 1.6 - t * 2.2) + 1) * 0.9;
-        dummy.position.set(x, h / 2 - 0.5, z);
-        dummy.scale.set(0.22, h, 0.22);
+        // two interfering waves + a slow swell = organic detail
+        const h =
+          0.25 +
+          (Math.sin(d * 1.5 - t * 2.0) + 1) * 0.5 +
+          (Math.sin(x * 0.9 + t * 1.3) * Math.cos(z * 0.9 - t * 0.9) + 1) * 0.35;
+        dummy.position.set(x, h / 2 - 0.6, z);
+        dummy.scale.set(0.17, h, 0.17);
+        dummy.rotation.set(0, 0, 0);
         dummy.updateMatrix();
-        mref.setMatrixAt(i, dummy.matrix);
-        const ci = Math.min(
-          colorPalette.length - 1,
-          Math.floor((h / 2.2) * colorPalette.length),
-        );
-        mref.setColorAt(i, colorPalette[ci]);
+        m.setMatrixAt(i, dummy.matrix);
+
+        const norm = (h - 0.25) / 2.0;
+        const col = norm > 0.92 ? coral.clone() : ramp(norm);
+        m.setColorAt(i, col);
         i++;
       }
     }
-    mref.instanceMatrix.needsUpdate = true;
-    if (mref.instanceColor) mref.instanceColor.needsUpdate = true;
+    m.instanceMatrix.needsUpdate = true;
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
   });
 
   return (
-    <group rotation={[0.5, 0.3, 0]}>
+    <group rotation={[0.62, 0.25, 0]} position={[0, -0.4, 0]}>
       <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial roughness={0.4} metalness={0.1} />
+        <meshStandardMaterial roughness={0.35} metalness={0.15} />
       </instancedMesh>
     </group>
   );

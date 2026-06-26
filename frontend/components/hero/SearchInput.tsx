@@ -8,7 +8,13 @@ import { cn } from "@/lib/cn";
 const SPOTIFY_RE = /open\.spotify\.com\/track\/|spotify:track:|^[a-zA-Z0-9]{16,}$/;
 
 /** Centered Spotify URL input → routes to /predict?track=... */
-export function SearchInput({ className }: { className?: string }) {
+export function SearchInput({
+  className,
+  onDark = false,
+}: {
+  className?: string;
+  onDark?: boolean;
+}) {
   const router = useRouter();
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
@@ -53,13 +59,15 @@ export function SearchInput({ className }: { className?: string }) {
           Analyze
         </motion.button>
       </div>
-      <div className="mt-2 h-5 pl-4 text-sm">
+      <div className="mt-3 h-5 pl-4 text-sm">
         {error ? (
-          <span className="text-coral">
+          <span className={onDark ? "text-gold" : "text-coral"}>
             That doesn’t look like a Spotify track link. Try open.spotify.com/track/…
           </span>
         ) : (
-          <span className="text-ink/45 font-mono text-xs">
+          <span
+            className={`font-mono text-xs ${onDark ? "text-cream/70" : "text-ink/45"}`}
+          >
             e.g. https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT
           </span>
         )}
