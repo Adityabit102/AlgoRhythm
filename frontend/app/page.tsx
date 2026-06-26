@@ -10,6 +10,8 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { GrainOverlay } from "@/components/ui/Overlays";
 import { InsightTeasers } from "@/components/home/InsightTeasers";
 import { RecentFeed } from "@/components/home/RecentFeed";
+import { RetroScene } from "@/components/home/RetroScene";
+import { VinylRecord2D } from "@/components/home/VinylRecord2D";
 import { useRegion } from "@/lib/store";
 
 export default function Home() {
@@ -83,6 +85,9 @@ export default function Home() {
         <InsightTeasers />
       </section>
 
+      {/* ───────────── Retro parallax scene (Decathlon-style) ───────────── */}
+      <RetroScene />
+
       {/* ───────────── 3D toolkit band ───────────── */}
       <section className="mx-auto w-full max-w-6xl px-6 pb-4">
         <SectionHeading
@@ -126,8 +131,8 @@ export default function Home() {
           </p>
           <RecentFeed />
         </div>
-        <div className="relative h-80 lg:h-[28rem]">
-          <Showcase name="vinyl" className="h-full w-full" />
+        <div className="flex items-center justify-center">
+          <VinylRecord2D size={400} className="max-w-full" />
         </div>
       </section>
     </main>

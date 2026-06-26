@@ -21,9 +21,9 @@ export function AudioWaveMesh({
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const count = rows * cols;
 
-  // a smooth low→high ramp through the brand palette (cohesive, not garish)
+  // low→high ramp through the reference-image palette: blue → mint → yellow
   const ramp = useMemo(() => {
-    const stops = ["#1230b0", "#1a43e0", "#2d5bff", "#5fc9ab", "#8fe3c8", "#ffd23f"].map(
+    const stops = ["#1b4de4", "#2d5bff", "#7ad5bd", "#a8e0d0", "#f4d74e", "#ffd23f"].map(
       (h) => new THREE.Color(h),
     );
     return (t: number) => {
@@ -33,8 +33,8 @@ export function AudioWaveMesh({
     };
   }, []);
 
-  // sparse coral accents so peaks pop without flooding the field
-  const coral = useMemo(() => new THREE.Color("#ff5a45"), []);
+  // sparse red accents (image's red) so peaks pop without flooding the field
+  const coral = useMemo(() => new THREE.Color("#e8473d"), []);
 
   useFrame((state) => {
     const m = mesh.current;
