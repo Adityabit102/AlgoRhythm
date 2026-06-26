@@ -62,10 +62,10 @@ export function AudioWaveMesh({
           Math.floor(region * palette.length),
         );
         const norm = (h - 0.25) / 2.0;
-        // brighten slightly overall, plus extra lift toward the peaks
+        // brighten overall, plus extra lift toward the peaks
         const col = palette[idx]
           .clone()
-          .lerp(white, 0.12 + Math.max(0, norm - 0.6) * 0.6);
+          .lerp(white, 0.22 + Math.max(0, norm - 0.6) * 0.6);
         m.setColorAt(i, col);
         i++;
       }
