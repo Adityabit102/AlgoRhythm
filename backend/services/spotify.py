@@ -29,7 +29,14 @@ def _client():
         client_id=settings.spotify_client_id,
         client_secret=settings.spotify_client_secret,
     )
-    return spotipy.Spotify(auth_manager=auth)
+    # longer timeout + retries — the default 5s causes intermittent ReadTimeouts
+    return spotipy.Spotify(
+        auth_manager=auth,
+        requests_timeout=10,
+        retries=3,
+        status_retries=3,
+        backoff_factor=0.3,
+    )
 
 
 def fetch_track_meta(track_id: str) -> dict:
@@ -55,25 +62,6 @@ def fetch_track_meta(track_id: str) -> dict:
         "popularity": meta.get("popularity", 0),
         "primary_artist_name": artists[0]["name"] if artists else "",
     }
-
-
-def fetch_track_covers(track_ids: list[str]) -> dict[str, str]:
-    """Batch album-art lookup (one call for up to 50 tracks). Metadata still works."""
-    ids = [t for t in track_ids if t]
-    if not ids:
-        return {}
-    sp = _client()
-    try:
-        tracks = sp.tracks(ids[:50]).get("tracks", [])
-    except Exception:
-        return {}
-    covers = {}
-    for t in tracks:
-        if not t:
-            continue
-        imgs = t.get("album", {}).get("images", [])
-        covers[t["id"]] = imgs[0]["url"] if imgs else ""
-    return covers
 
 
 def fetch_more_from_artist(artist_name: str, exclude_id: str = "", limit: int = 5) -> list[dict]:

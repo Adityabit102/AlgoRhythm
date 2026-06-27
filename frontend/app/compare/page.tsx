@@ -20,13 +20,20 @@ export default function ComparePage() {
   const [urls, setUrls] = useState(["", "", ""]);
   const [results, setResults] = useState<PredictionResponse[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function run() {
     const filled = urls.slice(0, count).filter((u) => u.trim());
     if (filled.length < count) return;
     setLoading(true);
+    setError(null);
     try {
       setResults(await batchPredict(filled));
+    } catch {
+      setResults(null);
+      setError(
+        "Couldn't compare those tracks — make sure they're valid Spotify links to reasonably popular tracks.",
+      );
     } finally {
       setLoading(false);
     }
@@ -97,6 +104,12 @@ export default function ComparePage() {
             {loading ? "Analyzing…" : `Compare ${count} tracks`}
           </Button>
         </div>
+
+        {error && !loading && (
+          <div className="mt-6 rounded-xl border-2 border-coral bg-coral/10 px-5 py-4 text-sm text-ink">
+            {error}
+          </div>
+        )}
 
         {loading && (
           <div className="flex justify-center py-20">
