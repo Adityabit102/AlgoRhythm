@@ -23,17 +23,18 @@ export function SensitivitySliders({ data }: { data: PredictionResponse }) {
   const [vals, setVals] = useState(originals);
 
   const newProb = useMemo(() => {
-    let sum = data.shap.base_value;
+    // Anchor to the model's actual probability, then nudge by the *change* in each
+    // feature's SHAP contribution. SHAP is in log-odds space, so adjust the margin
+    // and map back through a sigmoid — works for both the real model and the mock.
+    const actual = Math.min(0.999, Math.max(0.001, data.prediction.hit_probability));
+    let margin = Math.log(actual / (1 - actual));
     for (const [key, shapVal] of Object.entries(data.shap.values)) {
       if (key in originals && originals[key] !== 0) {
         const ratio = vals[key] / originals[key];
-        // Move contribution proportionally, damped so it stays sane.
-        sum += shapVal * (1 + (ratio - 1) * 0.8);
-      } else {
-        sum += shapVal;
+        margin += shapVal * ((ratio - 1) * 0.8);
       }
     }
-    return Math.max(0, Math.min(1, sum));
+    return 1 / (1 + Math.exp(-margin));
   }, [vals, originals, data]);
 
   const delta = newProb - data.prediction.hit_probability;

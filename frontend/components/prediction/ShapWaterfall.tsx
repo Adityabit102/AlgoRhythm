@@ -69,17 +69,12 @@ export function ShapWaterfall({
                 >
                   <motion.div
                     initial={{ width: 0 }}
-                    whileInView={{ width: `${widthPct}%` }}
-                    viewport={{ once: true }}
+                    animate={{ width: `${Math.max(widthPct, 1.5)}%` }}
                     transition={{ duration: 0.7, delay: i * 0.05, ease: "easeOut" }}
                     className={`absolute top-1 h-5 rounded-sm border-2 border-ink ${
                       positive ? "bg-mint-deep" : "bg-coral"
                     }`}
-                    style={
-                      positive
-                        ? { left: "50%" }
-                        : { right: "50%" }
-                    }
+                    style={positive ? { left: "50%" } : { right: "50%" }}
                   />
                 </Tooltip>
               </div>

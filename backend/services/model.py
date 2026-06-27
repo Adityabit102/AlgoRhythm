@@ -213,6 +213,10 @@ def predict_from_raw(
     confidence = "high" if (proba > 0.75 or proba < 0.4) else "medium"
     rnd = _rng(track.id + str(variant))
 
+    from services.similar import similar_hits
+
+    neighbours = similar_hits(raw)
+
     return PredictionResponse(
         track=track,
         prediction=Prediction(
@@ -240,7 +244,7 @@ def predict_from_raw(
             top_positive=top_pos,
             top_negative=top_neg,
         ),
-        similar_hits=[],
+        similar_hits=neighbours,
         model_version=MODEL_VERSION,
         inference_time_ms=int((_t.perf_counter() - started) * 1000),
     )
