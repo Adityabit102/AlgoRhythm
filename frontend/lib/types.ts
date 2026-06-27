@@ -61,12 +61,20 @@ export interface SimilarHit {
   cover_url?: string;
 }
 
+export interface ArtistTrack {
+  name: string;
+  artist: string;
+  spotify_url: string;
+  cover_url?: string;
+}
+
 export interface PredictionResponse {
   track: TrackMeta;
   prediction: Prediction;
   features: Record<string, number | string>;
   shap: ShapBlock;
   similar_hits: SimilarHit[];
+  more_from_artist?: ArtistTrack[];
   model_version: string;
   inference_time_ms: number;
 }

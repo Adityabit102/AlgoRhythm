@@ -53,4 +53,32 @@ def fetch_track_meta(track_id: str) -> dict:
         "collaborator_count": max(0, len(artists) - 1),
         "primary_genre": (primary_artist.get("genres") or ["unknown"])[0],
         "popularity": meta.get("popularity", 0),
+        "primary_artist_name": artists[0]["name"] if artists else "",
     }
+
+
+def fetch_more_from_artist(artist_name: str, exclude_id: str = "", limit: int = 5) -> list[dict]:
+    """More tracks by the same artist via search (top-tracks is 403 for new apps)."""
+    if not artist_name:
+        return []
+    sp = _client()
+    try:
+        items = sp.search(q=f'artist:"{artist_name}"', type="track", limit=10, market="US")
+        items = items.get("tracks", {}).get("items", [])
+    except Exception:
+        return []
+    out, seen = [], set()
+    for t in items:
+        if t["id"] == exclude_id or t["name"] in seen:
+            continue
+        seen.add(t["name"])
+        imgs = t.get("album", {}).get("images", [])
+        out.append({
+            "name": t["name"],
+            "artist": ", ".join(a["name"] for a in t.get("artists", [])),
+            "spotify_url": t.get("external_urls", {}).get("spotify", ""),
+            "cover_url": imgs[0]["url"] if imgs else "",
+        })
+        if len(out) >= limit:
+            break
+    return out

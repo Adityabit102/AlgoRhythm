@@ -10,6 +10,7 @@ import time
 
 from core.config import settings
 from schemas.predict import (
+    ArtistTrack,
     Prediction,
     PredictionResponse,
     ShapBlock,
@@ -176,7 +177,7 @@ def _clean_name(name: str) -> str:
 
 
 def predict_from_raw(
-    raw: dict, track: TrackMeta, variant: int = 0
+    raw: dict, track: TrackMeta, variant: int = 0, more_from_artist: list | None = None
 ) -> PredictionResponse:
     """Run the real model + SHAP on a raw feature row. `raw` holds the Spotify audio
     features plus release_date / collaborator_count / primary_genre. Used by both the
@@ -245,6 +246,7 @@ def predict_from_raw(
             top_negative=top_neg,
         ),
         similar_hits=neighbours,
+        more_from_artist=[ArtistTrack(**t) for t in (more_from_artist or [])],
         model_version=MODEL_VERSION,
         inference_time_ms=int((_t.perf_counter() - started) * 1000),
     )
@@ -284,7 +286,10 @@ def _real_prediction(spotify_url: str) -> PredictionResponse:
         cover_url=meta["cover_url"],
         spotify_url=meta["spotify_url"],
     )
-    return predict_from_raw(raw, track)
+    more = spotify.fetch_more_from_artist(
+        meta.get("primary_artist_name", ""), exclude_id=meta["id"]
+    )
+    return predict_from_raw(raw, track, more_from_artist=more)
 
 
 def predict(spotify_url: str, variant: int = 0) -> PredictionResponse:

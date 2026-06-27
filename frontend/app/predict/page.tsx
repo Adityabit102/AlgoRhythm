@@ -17,6 +17,7 @@ import { RegionalScores } from "@/components/prediction/RegionalScores";
 import { ShapWaterfall } from "@/components/prediction/ShapWaterfall";
 import { FeatureSpotlight } from "@/components/prediction/FeatureSpotlight";
 import { SimilarHits } from "@/components/prediction/SimilarHits";
+import { ArtistMore } from "@/components/prediction/ArtistMore";
 import { SensitivitySliders } from "@/components/prediction/SensitivitySliders";
 import { ShareCard } from "@/components/prediction/ShareCard";
 
@@ -132,9 +133,22 @@ function PredictResult() {
         <SimilarHits hits={data.similar_hits} />
       </section>
 
+      {/* more from the same artist */}
+      {data.more_from_artist && data.more_from_artist.length > 0 && (
+        <section className="mt-12">
+          <SectionHeading
+            index="06"
+            kicker="Same artist"
+            title={`More from ${data.track.artist}`}
+            className="mb-6"
+          />
+          <ArtistMore tracks={data.more_from_artist} />
+        </section>
+      )}
+
       {/* share */}
       <section className="mt-12">
-        <SectionHeading index="06" kicker="Share" title="Take it with you" className="mb-6" />
+        <SectionHeading index="07" kicker="Share" title="Take it with you" className="mb-6" />
         <ShareCard data={data} />
       </section>
 

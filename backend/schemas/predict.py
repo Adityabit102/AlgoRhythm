@@ -52,12 +52,20 @@ class SimilarHit(BaseModel):
     cover_url: str = ""
 
 
+class ArtistTrack(BaseModel):
+    name: str
+    artist: str
+    spotify_url: str
+    cover_url: str = ""
+
+
 class PredictionResponse(BaseModel):
     track: TrackMeta
     prediction: Prediction
     features: dict[str, float | str]
     shap: ShapBlock
     similar_hits: list[SimilarHit]
+    more_from_artist: list[ArtistTrack] = []
     model_version: str
     inference_time_ms: int
 
