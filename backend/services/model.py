@@ -216,7 +216,7 @@ def predict_from_raw(
 
     from services.similar import similar_hits
 
-    neighbours = similar_hits(raw)
+    neighbours = similar_hits(raw)  # covers are baked into the reference set
 
     return PredictionResponse(
         track=track,

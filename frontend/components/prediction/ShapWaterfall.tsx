@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useMemo } from "react";
 import type { ShapBlock } from "@/lib/types";
 import { featureLabel } from "@/lib/mock";
-import { Tooltip } from "@/components/ui/Tooltip";
 
 /** Custom animated SHAP waterfall — bars grow from the base value outward.
  *  Green = pushes toward hit, red = pushes away. Built in SVG/divs, not matplotlib. */
@@ -49,34 +48,21 @@ export function ShapWaterfall({
               <div className="w-40 shrink-0 truncate text-right font-mono text-xs text-ink/70">
                 {featureLabel(key)}
               </div>
-              {/* track with center axis */}
+              {/* track with center axis — bar is positioned against THIS box */}
               <div className="relative h-7 flex-1">
                 <div className="absolute left-1/2 top-0 h-full w-px bg-ink/30" />
-                <Tooltip
-                  content={
-                    <span>
-                      {featureLabel(key)}
-                      {fv !== undefined && (
-                        <>
-                          <br />
-                          value: <span className="font-mono">{String(fv)}</span>
-                        </>
-                      )}
-                      <br />
-                      SHAP: <span className="font-mono">{val > 0 ? "+" : ""}{val.toFixed(3)}</span>
-                    </span>
-                  }
-                >
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.max(widthPct, 1.5)}%` }}
-                    transition={{ duration: 0.7, delay: i * 0.05, ease: "easeOut" }}
-                    className={`absolute top-1 h-5 rounded-sm border-2 border-ink ${
-                      positive ? "bg-mint-deep" : "bg-coral"
-                    }`}
-                    style={positive ? { left: "50%" } : { right: "50%" }}
-                  />
-                </Tooltip>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.max(widthPct, 1.5)}%` }}
+                  transition={{ duration: 0.7, delay: i * 0.05, ease: "easeOut" }}
+                  title={`${featureLabel(key)}${
+                    fv !== undefined ? ` · value ${fv}` : ""
+                  } · SHAP ${val > 0 ? "+" : ""}${val.toFixed(3)}`}
+                  className={`absolute top-1 h-5 rounded-sm border-2 border-ink ${
+                    positive ? "bg-mint-deep" : "bg-coral"
+                  }`}
+                  style={positive ? { left: "50%" } : { right: "50%" }}
+                />
               </div>
               <div className="w-14 shrink-0 font-mono text-xs tabular-nums text-ink/70">
                 {val > 0 ? "+" : ""}

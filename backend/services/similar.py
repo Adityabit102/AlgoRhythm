@@ -41,7 +41,7 @@ def similar_hits(features: dict, k: int = 5) -> list[SimilarHit]:
                 artist=r["artist"],
                 similarity_score=round(1.0 / (1.0 + d), 3),
                 spotify_url=f"https://open.spotify.com/track/{r['spotify_id']}",
-                cover_url="",
+                cover_url=r.get("cover_url", ""),
             )
         )
     return out
