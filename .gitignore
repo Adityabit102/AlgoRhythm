@@ -33,3 +33,7 @@ model.json
 # ML output artifacts
 ml/artifacts/
 backend/.artifacts/
+
+# stray caches
+backend/.cache
+backend/.artifacts
