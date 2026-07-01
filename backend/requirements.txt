@@ -13,7 +13,9 @@ spotipy>=2.23
 boto3>=1.34
 
 # ── ML inference (only imported when USE_MOCK_MODEL=0) ──
-xgboost>=2.0
+# xgboost-cpu: CPU-only build (~5MB) — the default `xgboost` wheel bundles ~300MB
+# of CUDA libs that overflow a t3.micro disk and aren't needed for inference.
+xgboost-cpu>=2.0
 shap>=0.44
 scikit-learn>=1.4
 joblib>=1.3

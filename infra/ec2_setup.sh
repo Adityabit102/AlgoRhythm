@@ -36,8 +36,8 @@ fi
 echo "==> Python env"
 cd "$APP_DIR/backend"
 python3 -m venv .venv
-./.venv/bin/pip install --upgrade pip
-./.venv/bin/pip install -r requirements.txt
+./.venv/bin/pip install --no-cache-dir --upgrade pip
+./.venv/bin/pip install --no-cache-dir -r requirements.txt
 
 echo "==> Pull model artifacts from S3 into ml/artifacts (instance IAM role grants read)"
 mkdir -p "$APP_DIR/ml/artifacts"
