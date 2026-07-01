@@ -44,6 +44,18 @@ mkdir -p "$APP_DIR/ml/artifacts"
 aws s3 sync "s3://${BUCKET}/${PREFIX}" "$APP_DIR/ml/artifacts" || \
   echo "WARN: artifact sync failed — check the IAM role / bucket / prefix"
 
+echo "==> starter .env (edit it to add Spotify keys + your Vercel domain)"
+if [ ! -f "$APP_DIR/backend/.env" ]; then
+  cat > "$APP_DIR/backend/.env" <<EOF
+USE_MOCK_MODEL=0
+SPOTIFY_CLIENT_ID=
+SPOTIFY_CLIENT_SECRET=
+S3_BUCKET_NAME=${BUCKET}
+S3_ARTIFACT_PREFIX=${PREFIX}
+ALLOWED_ORIGINS=http://localhost:3000
+EOF
+fi
+
 echo "==> systemd + nginx"
 cp "$APP_DIR/infra/algorhythm.service" /etc/systemd/system/algorhythm.service
 cp "$APP_DIR/infra/nginx.conf" /etc/nginx/sites-available/algorhythm

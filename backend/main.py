@@ -12,11 +12,17 @@ from routers import health, insights, predict, track
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load model artifacts from S3 at startup unless running in mock mode.
+    # Load model artifacts (local dir or S3) at startup unless in mock mode.
+    # Don't crash the whole service if it fails — /health should still respond.
     if not settings.use_mock_model:
-        from services.model import load_artifacts
+        try:
+            from services.model import load_artifacts
 
-        load_artifacts()
+            load_artifacts()
+        except Exception as e:  # noqa: BLE001
+            import logging
+
+            logging.getLogger("algorhythm").error("artifact load failed: %s", e)
     yield
 
 
