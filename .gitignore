@@ -37,3 +37,8 @@ backend/.artifacts/
 # stray caches
 backend/.cache
 backend/.artifacts
+
+# never commit secrets/keys
+*.pem
+*accessKeys*.csv
+aws_credentials*.csv
