@@ -40,7 +40,11 @@ export function RadarComparison({ series }: { series: RadarSeries[] }) {
 
   return (
     <div className="flex flex-col items-center">
-      <svg width={size} height={size}>
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        width="100%"
+        className="h-auto w-full max-w-[340px]"
+      >
         {/* rings */}
         {[0.25, 0.5, 0.75, 1].map((f) => (
           <polygon

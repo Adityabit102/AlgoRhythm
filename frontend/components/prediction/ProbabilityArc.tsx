@@ -38,8 +38,12 @@ export function ProbabilityArc({
   const color = value > 0.66 ? "#ffd23f" : value > 0.45 ? "#8fe3c8" : "#ff5a45";
 
   return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-[0deg]">
+    <div className="relative aspect-square w-full" style={{ maxWidth: size }}>
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        width="100%"
+        className="h-full w-full"
+      >
         <defs>
           <linearGradient id="arcgrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#1a43e0" />

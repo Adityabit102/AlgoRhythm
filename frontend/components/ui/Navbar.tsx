@@ -52,9 +52,10 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <Link
             href="/predict"
-            className="rounded-full border-2 border-ink bg-gold px-4 py-1.5 text-sm font-display font-semibold shadow-[var(--shadow-pop-sm)] transition-shadow hover:shadow-[var(--shadow-pop)]"
+            className="rounded-full border-2 border-ink bg-gold px-3 py-1.5 text-sm font-display font-semibold shadow-[var(--shadow-pop-sm)] transition-shadow hover:shadow-[var(--shadow-pop)] sm:px-4"
           >
-            Analyze a track
+            <span className="sm:hidden">Analyze</span>
+            <span className="hidden sm:inline">Analyze a track</span>
           </Link>
           {/* mobile menu toggle */}
           <button

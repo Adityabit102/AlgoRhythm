@@ -45,7 +45,7 @@ export function ShapWaterfall({
           const fv = features?.[key];
           return (
             <div key={key} className="flex items-center gap-3">
-              <div className="w-40 shrink-0 truncate text-right font-mono text-xs text-ink/70">
+              <div className="w-20 shrink-0 truncate text-right font-mono text-[10px] text-ink/70 sm:w-40 sm:text-xs">
                 {featureLabel(key)}
               </div>
               {/* track with center axis — bar is positioned against THIS box */}

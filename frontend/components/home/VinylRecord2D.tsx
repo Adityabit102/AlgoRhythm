@@ -71,8 +71,8 @@ export function VinylRecord2D({
   return (
     <div
       ref={wrap}
-      className={cn("relative select-none", className)}
-      style={{ width: size, height: size }}
+      className={cn("relative mx-auto aspect-square w-full select-none", className)}
+      style={{ maxWidth: size }}
     >
       {/* spinning disc */}
       <div

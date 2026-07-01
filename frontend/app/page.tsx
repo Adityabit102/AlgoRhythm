@@ -44,7 +44,7 @@ export default function Home() {
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-full border-2 border-ink bg-lime px-4 py-1 font-mono text-xs uppercase tracking-[0.3em] shadow-[var(--shadow-pop-sm)]"
+            className="rounded-full border-2 border-ink bg-lime px-3 py-1 text-center font-mono text-[10px] uppercase tracking-[0.15em] shadow-[var(--shadow-pop-sm)] sm:px-4 sm:text-xs sm:tracking-[0.3em]"
           >
             The science behind every hit
           </motion.span>
