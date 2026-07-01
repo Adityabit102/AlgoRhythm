@@ -21,7 +21,8 @@ fi
 
 echo "==> System packages"
 apt-get update -y
-apt-get install -y python3.11 python3.11-venv python3-pip nginx git awscli \
+# use the distro's default python3 (26.04 ships a newer one; xgboost/shap have wheels)
+apt-get install -y python3 python3-venv python3-pip nginx git awscli \
   certbot python3-certbot-nginx
 
 echo "==> Fetch code"
@@ -34,7 +35,7 @@ fi
 
 echo "==> Python env"
 cd "$APP_DIR/backend"
-python3.11 -m venv .venv
+python3 -m venv .venv
 ./.venv/bin/pip install --upgrade pip
 ./.venv/bin/pip install -r requirements.txt
 
